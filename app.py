@@ -200,11 +200,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Enable CORS for frontend
+# Note: allow_origins=["*"] breaks with allow_credentials=True in Starlette.
+# Use allow_origin_regex=".*" to allow all origins when no specific list is set.
 _cors_origins_env = os.environ.get("CORS_ORIGINS", "")
-_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] if _cors_origins_env else ["*"]
+_cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+_cors_regex = None if _cors_origins else r".*"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
+    allow_origin_regex=_cors_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
